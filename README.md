@@ -1,5 +1,6 @@
 # ci-ninja
-CI service written in node, inspired by [node-cd](https://github.com/A21z/node-cd)
+CI service written in node, inspired by [ci-ninja](https://github.com/backmeupplz/ci-ninja) && [node-cd](https://github.com/A21z/node-cd)
+Adaptated for Gitlab.
 
 # Usage
 1. `git clone https://github.com/backmeupplz/ci-ninja` on the server

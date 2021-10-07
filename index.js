@@ -15,12 +15,6 @@ app.post('/', (req, res) => {
     '127.0.0.1',
     'localhost'
   ]
-  const githubIps = [
-    '207.97.227.253',
-    '50.57.128.197',
-    '204.232.175.75',
-    '108.171.174.178'
-  ]
   const payload = JSON.parse(req.body.payload)
 
   if (!payload) {
@@ -31,7 +25,7 @@ app.post('/', (req, res) => {
   }
 
   const ipv4 = req.ip.replace('::ffff:', '')
-  if (!(inAuthorizedSubnet(ipv4) || authorizedIps.indexOf(ipv4) >= 0 || githubIps.indexOf(ipv4) >= 0)) {
+  if (!(inAuthorizedSubnet(ipv4) || authorizedIps.indexOf(ipv4) >= 0)) {
     console.log('Unauthorized IP:', req.ip, '(', ipv4, ')')
     res.writeHead(403)
     res.end()
@@ -42,7 +36,8 @@ app.post('/', (req, res) => {
     res.end()
     return
   }
-  const scriptPath = `./scripts/${payload.repository.name}-${payload.ref.split('/').pop()}.sh`
+  // const scriptPath = `./scripts/${payload.repository.name}-${payload.ref.split('/').pop()}.sh`
+  const scriptPath = `./scripts/${payload.repository.name}.sh`
   console.log(`Executing task at: ${scriptPath}`)
   myExec(scriptPath)
 
@@ -68,10 +63,8 @@ function myExec(line) {
 
 function inAuthorizedSubnet(ip) {
   const authorizedSubnet = [
-    '192.30.252.0/22',
-    '185.199.108.0/22',
-    '140.82.112.0/20',
-    '143.55.64.0/20'
+    '34.74.90.64/28',
+    '34.74.226.0/24',
   ].map(function (subnet) {
     return new Netmask(subnet)
   })
