@@ -64,8 +64,9 @@ function myExec(line, args) {
     }
 
     console.log('STDOUT::', stdout);
+    console.log('^_^');
   }
-  exec(line, execCallback)
+  exec(line + ' ' + args, execCallback)
 }
 
 function inAuthorizedSubnet(ip) {
