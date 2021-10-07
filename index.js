@@ -16,7 +16,7 @@ app.post('/', (req, res) => {
     'localhost'
   ]
   console.log('IP', req.ip);
-  console.log('BODY', req.body)
+  /// console.log('BODY', req.body)
 
   const payload = req.body
 
@@ -39,10 +39,8 @@ app.post('/', (req, res) => {
     res.end()
     return
   }
-  // const scriptPath = `./scripts/${payload.repository.name}-${payload.ref.split('/').pop()}.sh`
-  const scriptPath = `./scripts/${payload.repository.name}.sh`
-  console.log(`Executing task at: ${scriptPath}`)
-  myExec(scriptPath)
+
+  myExec(`./scripts/${payload.repository.name}.sh`, payload.ref.split('/').pop());
 
   res.writeHead(200)
   res.end()
@@ -52,8 +50,12 @@ http.createServer(app).listen(app.get('port'), function () {
   console.log('CI Ninja server listening on port ' + app.get('port'))
 })
 
-function myExec(line) {
-  if (!fs.existsSync(line)) return
+function myExec(line, args) {
+  console.log(`Executing task at: ${line} ${args}`)
+  if (!fs.existsSync(line)) {
+    console.log(`Could not find script`);
+    return
+  }
   
   const exec = require('child_process').exec
   const execCallback = (error) => {
