@@ -58,10 +58,12 @@ function myExec(line, args) {
   }
   
   const exec = require('child_process').exec
-  const execCallback = (error) => {
+  const execCallback = (error, stdout, stderr) => {
     if (error !== null) {
-      console.log('exec error: ' + error)
+      console.log('exec error: ' + error, stderr)
     }
+
+    console.log('STDOUT::', stdout);
   }
   exec(line, execCallback)
 }
