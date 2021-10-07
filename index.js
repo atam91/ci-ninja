@@ -15,6 +15,9 @@ app.post('/', (req, res) => {
     '127.0.0.1',
     'localhost'
   ]
+  console.log('REQ', req);
+  console.log('BODY', req.body)
+
   const payload = JSON.parse(req.body.payload)
 
   if (!payload) {
