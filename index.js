@@ -40,7 +40,7 @@ app.post('/', (req, res) => {
     return
   }
 
-  myExec(`./scripts/${payload.repository.name}.sh`, payload.ref.split('/').pop());
+  myExec(`./scripts/${payload.repository.name}-${payload.ref.split('/').pop()}.sh`, );
 
   res.writeHead(200)
   res.end()
@@ -50,8 +50,8 @@ http.createServer(app).listen(app.get('port'), function () {
   console.log('CI Ninja server listening on port ' + app.get('port'))
 })
 
-function myExec(line, args) {
-  console.log(`Executing task at: ${line} ${args}`)
+function myExec(line) {
+  console.log(`Executing task at: ${line}`)
   if (!fs.existsSync(line)) {
     console.log(`Could not find script`);
     return
@@ -66,7 +66,7 @@ function myExec(line, args) {
     console.log('STDOUT::', stdout);
     console.log('^_^');
   }
-  exec(line + ' ' + args, execCallback)
+  exec(line, execCallback)
 }
 
 function inAuthorizedSubnet(ip) {
