@@ -1,11 +1,15 @@
-const express = require('express')
-const path = require('path')
+const fs = require('fs')
 const http = require('http')
-const app = express()
+
+require('dotenv').config()
+const express = require('express')
 const bodyParser = require('body-parser')
 const Netmask = require('netmask').Netmask
-const fs = require('fs')
+const axios = require('axios').default;
 
+const { TELEGRAM_BOT_TOKEN, TELEGRAM_NOTIFY_CHANNEL } = process.env;
+
+const app = express()
 app.set('port', 61439)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
@@ -13,7 +17,8 @@ app.use(bodyParser.urlencoded({extended: true}))
 app.post('/', (req, res) => {
   const authorizedIps = [
     '127.0.0.1',
-    'localhost'
+    'localhost',
+    '::1'
   ]
   console.log('IP', req.ip);
   /// console.log('BODY', req.body)
@@ -28,7 +33,7 @@ app.post('/', (req, res) => {
   }
 
   const ipv4 = req.ip.replace('::ffff:', '')
-  if (!(inAuthorizedSubnet(ipv4) || authorizedIps.indexOf(ipv4) >= 0)) {
+  if (!(authorizedIps.includes(ipv4) || inAuthorizedSubnet(ipv4))) {
     console.log('Unauthorized IP:', req.ip, '(', ipv4, ')')
     res.writeHead(403)
     res.end()
@@ -61,9 +66,11 @@ function myExec(line) {
   const execCallback = (error, stdout, stderr) => {
     if (error !== null) {
       console.log('exec error: ' + error, stderr)
+      notify([ line, 'exec error: ' + error, stderr ].join('\n'));
     }
 
     console.log('STDOUT::', stdout);
+    notify(line + "\n" + stdout);
     console.log('^_^');
   }
   exec(line, execCallback)
@@ -79,4 +86,21 @@ function inAuthorizedSubnet(ip) {
   return authorizedSubnet.some(function (subnet) {
     return subnet.contains(ip)
   })
+}
+
+
+
+function notify(text) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
+
+  axios.post(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: TELEGRAM_NOTIFY_CHANNEL,
+        text
+      }
+  )
+      .catch(function (error) {
+        console.log('AXIOS ERROR:' + error);
+      })
 }
