@@ -73,7 +73,7 @@ function myExec(line) {
     notify(line + "\n" + stdout);
     if (stderr) {
       console.log('!!! STDERR::', stderr);
-      notify(line + '\n⚠⚠⛔⛔⛔⚠⚠ !!! STDERR::\n' + stderr);
+      /// notify(line + '\n⚠⚠⛔⛔⛔⚠⚠ !!! STDERR::\n' + stderr);  /// stderr has some debug info which are non errors
     }
     console.log('^_^');
   }
