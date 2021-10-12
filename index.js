@@ -71,6 +71,10 @@ function myExec(line) {
 
     console.log('STDOUT::', stdout);
     notify(line + "\n" + stdout);
+    if (stderr) {
+      console.log('!!! STDERR::', stderr);
+      notify(line + '\n⚠⚠⛔⛔⛔⚠⚠ !!! STDERR::\n' + stderr);
+    }
     console.log('^_^');
   }
   exec(line, execCallback)
