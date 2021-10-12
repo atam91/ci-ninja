@@ -66,7 +66,6 @@ function myExec(line) {
   const execCallback = (error, stdout, stderr) => {
     if (error !== null) {
       console.log('exec error: ' + error, stderr)
-      notify([ line, 'exec error: ' + error, stderr ].join('\n'));
     }
 
     console.log('STDOUT::', stdout);
