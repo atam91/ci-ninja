@@ -97,6 +97,7 @@ function notify(text) {
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: TELEGRAM_NOTIFY_CHANNEL,
+        parse_mode: 'MarkdownV2',
         text
       }
   )
