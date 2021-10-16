@@ -16,14 +16,21 @@ app.use(bodyParser.urlencoded({extended: true}))
 
 app.post('/', (req, res) => {
   const authorizedIps = [
-    '127.0.0.1',
+    '127.0.0.1', /// local
     'localhost',
-    '::1'
+    '::1',
+    '207.97.227.253', /// github
+    '50.57.128.197',
+    '204.232.175.75',
+    '108.171.174.178',
   ]
   console.log('IP', req.ip);
-  /// console.log('BODY', req.body)
+  console.log('BODY', req.body)
 
-  const payload = req.body
+  let payload = req.body;
+  if (req.body.payload) {
+    payload = JSON.parse(req.body.payload)
+  }
 
   if (!payload) {
     console.log('No payload')
@@ -83,8 +90,12 @@ function myExec(line) {
 
 function inAuthorizedSubnet(ip) {
   const authorizedSubnet = [
-    '34.74.90.64/28',
+    '34.74.90.64/28', /// gitlab
     '34.74.226.0/24',
+    '192.30.252.0/22', /// github
+    '185.199.108.0/22',
+    '140.82.112.0/20',
+    '143.55.64.0/20',
   ].map(function (subnet) {
     return new Netmask(subnet)
   })
