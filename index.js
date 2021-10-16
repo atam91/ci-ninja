@@ -25,7 +25,7 @@ app.post('/', (req, res) => {
     '108.171.174.178',
   ]
   console.log('IP', req.ip);
-  console.log('BODY', req.body)
+  // console.log('BODY', req.body)
 
   let payload = req.body;
   if (req.body.payload) {
@@ -59,7 +59,9 @@ app.post('/', (req, res) => {
 })
 
 http.createServer(app).listen(app.get('port'), function () {
-  console.log('CI Ninja server listening on port ' + app.get('port'))
+  console.log('CI Ninja server listening on port ' + app.get('port'));
+
+  notify('✅ ci-ninja has been successfully deployed!');
 })
 
 function myExec(line) {
