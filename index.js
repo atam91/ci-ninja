@@ -61,7 +61,7 @@ app.post('/', (req, res) => {
 http.createServer(app).listen(app.get('port'), function () {
   console.log('CI Ninja server listening on port ' + app.get('port'));
 
-  notify('✅ ci-ninja has been successfully deployed!');
+  notify('✅ Ci-ninja has been successfully served!');
 })
 
 function myExec(line) {
