@@ -52,7 +52,7 @@ app.post('/', (req, res) => {
     return
   }
 
-  myExec(`./scripts/${payload.repository.name}-${payload.ref.split('/').pop()}.sh`, );
+  execScript(`${payload.repository.name}-${payload.ref.split('/').pop()}`);
 
   res.writeHead(200)
   res.end()
@@ -63,32 +63,6 @@ http.createServer(app).listen(app.get('port'), function () {
 
   notify('✅ Ci-ninja has been successfully served!');
 })
-
-function myExec(line) {
-  console.log(`Executing task at: ${line}`)
-  if (!fs.existsSync(line)) {
-    console.log(`Could not find script`);
-    return
-  }
-  
-  const exec = require('child_process').exec
-  const execCallback = (error, stdout, stderr) => {
-    if (error !== null) {
-      console.log('exec error: ' + error, stderr)
-    }
-
-    console.log('STDOUT::', stdout);
-    notify(line + "\n" + stdout);
-    if (stderr) {
-      console.log('!!! STDERR::', stderr);
-      if (error !== null) {
-        notify(line + '\n⚠⚠⛔⛔⛔⚠⚠ !!! STDERR::\n' + stderr);  /// stderr has some debug info which are non errors
-      }
-    }
-    console.log('^_^');
-  }
-  exec(line, execCallback)
-}
 
 function inAuthorizedSubnet(ip) {
   const authorizedSubnet = [
@@ -106,7 +80,44 @@ function inAuthorizedSubnet(ip) {
   })
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function execScript(scriptname) {
+  const line = `./scripts/${scriptname}.sh`
+
+  console.log(`Executing task at: ${line}`)
+  if (!fs.existsSync(line)) {
+    console.log(`Could not find script`);
+    return
+  }
+
+  const startTime = Date.now();
+  
+  const exec = require('child_process').exec
+  const execCallback = (error, stdout, stderr) => {
+    const duration = (Date.now() - startTime) / 1000;
+
+    if (error !== null) {
+      console.log('exec error: ' + error, stderr)
+    }
+    console.log('STDOUT::', stdout);
+
+    if (error) {
+      notify(`💥🙈 *${scriptname}* has been FAILED!!! (${duration}s)`);
+      notify(line + "\n" + stdout);
+      notify(line + '\n⚠⚠⛔⛔⛔⚠⚠ !!! STDERR::\n' + stderr);
+    } else {
+      notify(`😁👍 *${scriptname}* has been successfully executed! (${duration}s)`);
+    }
+
+    /// TODO dump to file
+
+    console.log('^_^');
+  }
+  exec(line, execCallback)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function notify(text) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
