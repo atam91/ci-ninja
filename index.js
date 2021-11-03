@@ -109,8 +109,9 @@ function execScript(scriptname) {
     const fullReport = [
       shortReport,
       `\n*STDOUT::*\n${stdout}`,
-      `\n⚠️⚠️⛔️⛔️⛔️⚠️⚠️ *STDERR::*\n${stderr}`
-    ].join('\n');
+      error && '⚠️⚠️⛔️⛔️⛔️⚠️⚠️',
+      `*STDERR::*\n${stderr}`
+    ].filter(v => v).join('\n');
 
     if (error) {
       tgSendMessage(fullReport);
