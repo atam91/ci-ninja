@@ -83,7 +83,7 @@ function inAuthorizedSubnet(ip) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function execScript(scriptname) {
-  const line = `./scripts/${scriptname}.sh`
+  const line = scriptname.endsWith('.sh') ? `./scripts/${scriptname}` : `./scripts/${scriptname}.sh`;
 
   console.log(`Executing task at: ${line}`)
   if (!fs.existsSync(line)) {
@@ -195,8 +195,6 @@ const updateCurrentOffset = async (value) => {
 function tgCheckUpdates() {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
 
-  console.log(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${currentOffset}`);
-
   axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${currentOffset}`)
       .then(async response => {
         const updates = response.data.result;
@@ -228,9 +226,31 @@ function tgCheckUpdates() {
             }
           }
 
-          await updateCurrentOffset(update.update_id + 1); ///fixme upper for ci-ninja-main script
-        }));
+          await updateCurrentOffset(update.update_id + 1); /// upper for ci-ninja-main *restart* script
 
+          if (update.message.text === "/run") {
+            const files = (await fs.promises.readdir('./scripts')).filter(file => !file.startsWith('.'));
+
+            if (files.length) {
+              const keyboard = files.map(file => [ `/run ${file}` ]);
+              await tgSendMessage('select script', { keyboard });
+            } else {
+              await tgSendMessage('could not find any script files');
+            }
+          } else if (update.message.text.startsWith("/run")) {
+            const match = update.message.text.match(/\/run\s+(\S+)\s*/);
+            if (match) {
+              try {
+                await fs.promises.readFile(`./scripts/${match[1]}`);
+                await tgSendMessage(`Running ${match[1]}`);
+                execScript(match[1]);
+              } catch (err) {
+                tgSendMessage(err.message);
+              }
+            }
+          }
+        }));
+        
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (updates.length && !checkUpdatesActiveStatus) {
           checkUpdatesActiveStatus = true;
