@@ -174,9 +174,10 @@ async function tgSendMessage(text, options = {}) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const CHECK_UPDATES_LAZY_INTERVAL = 5 * 1000;   /// todo 15s
-const CHECK_UPDATES_ACTIVE_INTERVAL = 5 * 1000;   /// fixme 2s
+const CHECK_UPDATES_LAZY_INTERVAL = 10 * 1000;   /// fixme? 15s
+const CHECK_UPDATES_ACTIVE_INTERVAL = 1500;
 let checkUpdatesActiveCounter = 0;
+let checkUpdatesActiveStatus = false;
 
 let currentOffset = 0;
 try {
@@ -193,6 +194,8 @@ const updateCurrentOffset = async (value) => {
 
 function tgCheckUpdates() {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
+
+  console.log(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${currentOffset}`);
 
   axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${currentOffset}`)
       .then(async response => {
@@ -228,7 +231,21 @@ function tgCheckUpdates() {
           await updateCurrentOffset(update.update_id + 1); ///fixme upper for ci-ninja-main script
         }));
 
-        setTimeout(tgCheckUpdates, CHECK_UPDATES_ACTIVE_INTERVAL); /// fixme to intelligent logic with checkUpdatesActiveCounter
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (updates.length && !checkUpdatesActiveStatus) {
+          checkUpdatesActiveStatus = true;
+          checkUpdatesActiveCounter = 0;
+        }
+        if (checkUpdatesActiveStatus) {
+          checkUpdatesActiveCounter += CHECK_UPDATES_ACTIVE_INTERVAL;
+        }
+        if (checkUpdatesActiveCounter >= CHECK_UPDATES_LAZY_INTERVAL) {
+          checkUpdatesActiveStatus = false;
+        }
+        setTimeout(
+            tgCheckUpdates,
+            checkUpdatesActiveStatus ? CHECK_UPDATES_ACTIVE_INTERVAL : CHECK_UPDATES_LAZY_INTERVAL
+        );
       })
       .catch(function (error) {
         console.log('getUpdates AXIOS ERROR:' + error);
