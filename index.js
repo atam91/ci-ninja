@@ -122,20 +122,40 @@ function execScript(scriptname) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const TG_MESSAGE_LIMIT = 4096;
 
-function tgSendMessage(text) {
+async function tgSendMessage(text) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
 
-  return axios.post(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        chat_id: TELEGRAM_NOTIFY_CHANNEL,
-        parse_mode: 'Markdown',
-        text
+  const sendMessage = text =>
+      axios.post(
+          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+          {
+            chat_id: TELEGRAM_NOTIFY_CHANNEL,
+            parse_mode: 'Markdown',
+            text
+          }
+      )
+          .catch(function (error) {
+            console.log('AXIOS ERROR:' + error);
+            console.log('RESPONSE DATA:', error.response.data);
+          });
+
+  if (text.length > TG_MESSAGE_LIMIT) {
+    const chunks = [ '' ];
+    text.split('\n').forEach(line => {
+      const lastChunk = chunks[chunks.length - 1];
+      if ((lastChunk + '\n' + line).length < TG_MESSAGE_LIMIT) {
+        chunks[chunks.length - 1] = lastChunk + '\n' + line;
+      } else {
+        chunks.push(line);
       }
-  )
-      .catch(function (error) {
-        console.log('AXIOS ERROR:' + error);
-        console.log('RESPONSE DATA:', error.response.data);
-      })
+    });
+
+    for (chunk of chunks) {
+      await sendMessage(chunk);
+    }
+  } else {
+    await sendMessage(text);
+  }
 }
