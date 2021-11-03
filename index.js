@@ -129,7 +129,7 @@ function execScript(scriptname) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const TG_MESSAGE_LIMIT = 4096;
 
-async function tgSendMessage(text) {
+async function tgSendMessage(text, options = {}) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
 
   const sendMessage = text =>
@@ -138,11 +138,18 @@ async function tgSendMessage(text) {
           {
             chat_id: TELEGRAM_NOTIFY_CHANNEL,
             parse_mode: 'Markdown',
-            text
+            text,
+            reply_markup: options.keyboard
+                ? {
+                    resize_keyboard: true,
+                    one_time_keyboard: true,
+                    keyboard: options.keyboard,
+                }
+                : { remove_keyboard: true },
           }
       )
           .catch(function (error) {
-            console.log('AXIOS ERROR:' + error);
+            console.log('sendMessage AXIOS ERROR:' + error);
             console.log('RESPONSE DATA:', error.response.data);
           });
 
@@ -164,3 +171,70 @@ async function tgSendMessage(text) {
     await sendMessage(text);
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const CHECK_UPDATES_LAZY_INTERVAL = 5 * 1000;   /// todo 15s
+const CHECK_UPDATES_ACTIVE_INTERVAL = 5 * 1000;   /// fixme 2s
+let checkUpdatesActiveCounter = 0;
+
+let currentOffset = 0;
+try {
+  currentOffset = fs.readFileSync('./data/offset') || 0
+} catch (err) {
+  if (err.code === 'ENOENT') {
+    fs.writeFileSync('./data/offset', '0');
+  }
+}
+const updateCurrentOffset = async (value) => {
+  currentOffset = value;
+  await fs.promises.writeFile('./data/offset', value.toString());
+};
+
+function tgCheckUpdates() {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
+
+  axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${currentOffset}`)
+      .then(async response => {
+        const updates = response.data.result;
+
+        await Promise.all(updates.map(async update => {
+          if (
+              update.message.from.id != TELEGRAM_NOTIFY_CHANNEL
+              || update.message.chat.id != TELEGRAM_NOTIFY_CHANNEL
+          ) return;
+
+          if (update.message.text === "/show") {
+            const files = (await fs.promises.readdir('./logs')).filter(file => !file.startsWith('.'));
+
+            if (files.length) {
+              const keyboard = files.map(file => [ `/show ${file}` ]);
+              await tgSendMessage('select file', { keyboard });
+            } else {
+              await tgSendMessage('could not find any log files');
+            }
+          } else if (update.message.text.startsWith("/show")) {
+            const match = update.message.text.match(/\/show\s+(\S+)\s*/);
+            if (match) {
+              try {
+                const file = await fs.promises.readFile(`./logs/${match[1]}`);
+                tgSendMessage(file.toString());
+              } catch (err) {
+                tgSendMessage(err.message);
+              }
+            }
+          }
+
+          await updateCurrentOffset(update.update_id + 1); ///fixme upper for ci-ninja-main script
+        }));
+
+        setTimeout(tgCheckUpdates, CHECK_UPDATES_ACTIVE_INTERVAL); /// fixme to intelligent logic with checkUpdatesActiveCounter
+      })
+      .catch(function (error) {
+        console.log('getUpdates AXIOS ERROR:' + error);
+        console.log('RESPONSE DATA:', error.response.data);
+
+        setTimeout(tgCheckUpdates, CHECK_UPDATES_LAZY_INTERVAL);
+      });
+}
+tgCheckUpdates();
