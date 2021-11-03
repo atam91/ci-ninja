@@ -102,19 +102,23 @@ function execScript(scriptname) {
     }
     console.log('STDOUT::', stdout);
 
-    if (error) {
-      const text = [
-        `💥🙈 *${scriptname}* has been FAILED!!! (${duration}s)`,
-        `\n*STDOUT::*\n${stdout}\n`,
-        `\n⚠️⚠️⛔️⛔️⛔️⚠️⚠️ *STDERR::*\n${stderr}`
-      ].join('\n');
+    const shortReport = error
+        ? `💥🙈 *${scriptname}* has been FAILED!!! (${duration}s)`
+        : `😁👍 *${scriptname}* has been successfully executed! (${duration}s)`;
 
-      tgSendMessage([ text, text, text ].join('\n'));   /// FIXME after test batch sendMessage
+    const fullReport = [
+      shortReport,
+      `\n*STDOUT::*\n${stdout}`,
+      `\n⚠️⚠️⛔️⛔️⛔️⚠️⚠️ *STDERR::*\n${stderr}`
+    ].join('\n');
+
+    if (error) {
+      tgSendMessage(fullReport);
     } else {
-      tgSendMessage(`😁👍 *${scriptname}* has been successfully executed! (${duration}s)`);
+      tgSendMessage(shortReport);
     }
 
-    /// TODO dump to file
+    fs.writeFileSync(`./logs/${scriptname}.log`, fullReport);
 
     console.log('^_^');
   }
