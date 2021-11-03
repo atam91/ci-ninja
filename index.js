@@ -61,7 +61,7 @@ app.post('/', (req, res) => {
 http.createServer(app).listen(app.get('port'), function () {
   console.log('CI Ninja server listening on port ' + app.get('port'));
 
-  notify('✅ Ci-ninja has been successfully served!');
+  tgSendMessage('✅ Ci-ninja has been successfully served!');
 })
 
 function inAuthorizedSubnet(ip) {
@@ -103,11 +103,15 @@ function execScript(scriptname) {
     console.log('STDOUT::', stdout);
 
     if (error) {
-      notify(`💥🙈 *${scriptname}* has been FAILED!!! (${duration}s)`);
-      notify(line + "\n" + stdout);
-      notify(line + '\n⚠⚠⛔⛔⛔⚠⚠ !!! STDERR::\n' + stderr);
+      const text = [
+        `💥🙈 *${scriptname}* has been FAILED!!! (${duration}s)`,
+        `\n*STDOUT::*\n${stdout}\n`,
+        `\n⚠️⚠️⛔️⛔️⛔️⚠️⚠️ *STDERR::*\n${stderr}`
+      ].join('\n');
+
+      tgSendMessage([ text, text, text ].join('\n'));   /// FIXME after test batch sendMessage
     } else {
-      notify(`😁👍 *${scriptname}* has been successfully executed! (${duration}s)`);
+      tgSendMessage(`😁👍 *${scriptname}* has been successfully executed! (${duration}s)`);
     }
 
     /// TODO dump to file
@@ -119,10 +123,10 @@ function execScript(scriptname) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function notify(text) {
+function tgSendMessage(text) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
 
-  axios.post(
+  return axios.post(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         chat_id: TELEGRAM_NOTIFY_CHANNEL,
