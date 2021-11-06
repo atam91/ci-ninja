@@ -83,7 +83,7 @@ function inAuthorizedSubnet(ip) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function execScript(scriptname) {
-  const line = scriptname.endsWith('.sh') ? `./scripts/${scriptname}` : `./scripts/${scriptname}.sh`;
+  const line = `./scripts/${scriptname}.sh`;
 
   console.log(`Executing task at: ${line}`)
   if (!fs.existsSync(line)) {
@@ -241,16 +241,17 @@ function tgCheckUpdates() {
             const match = update.message.text.match(/\/run\s+(\S+)\s*/);
             if (match) {
               try {
-                await fs.promises.readFile(`./scripts/${match[1]}`);
-                await tgSendMessage(`Running ${match[1]}`);
-                execScript(match[1]);
+                const scriptfile = match[1];
+                await fs.promises.readFile(`./scripts/${scriptfile}`);
+                await tgSendMessage(`Running ${scriptfile}`);
+                execScript(scriptfile.endsWith('.sh') ? scriptfile.replace(/\.sh$/, '') : scriptfile);
               } catch (err) {
                 tgSendMessage(err.message);
               }
             }
           }
         }));
-        
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (updates.length && !checkUpdatesActiveStatus) {
           checkUpdatesActiveStatus = true;
