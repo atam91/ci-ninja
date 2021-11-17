@@ -270,7 +270,7 @@ function tgCheckUpdates() {
       })
       .catch(function (error) {
         console.log('getUpdates AXIOS ERROR:' + error);
-        console.log('RESPONSE DATA:', error.response.data);
+        error.response && console.log('RESPONSE DATA:', error.response.data);
 
         setTimeout(tgCheckUpdates, CHECK_UPDATES_LAZY_INTERVAL);
       });
