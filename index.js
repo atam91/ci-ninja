@@ -214,7 +214,7 @@ function tgCheckUpdates() {
             } else {
               await tgSendMessage('could not find any log files');
             }
-          } else if (update.message.text.startsWith("/show")) {
+          } else if (update.message.text && update.message.text.startsWith("/show")) {
             const match = update.message.text.match(/\/show\s+(\S+)\s*/);
             if (match) {
               try {
@@ -237,7 +237,7 @@ function tgCheckUpdates() {
             } else {
               await tgSendMessage('could not find any script files');
             }
-          } else if (update.message.text.startsWith("/run")) {
+          } else if (update.message.text && update.message.text.startsWith("/run")) {
             const match = update.message.text.match(/\/run\s+(\S+)\s*/);
             if (match) {
               try {
