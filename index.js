@@ -174,8 +174,8 @@ async function tgSendMessage(text, options = {}) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const CHECK_UPDATES_LAZY_INTERVAL = 10 * 1000;   /// fixme? 15s
-const CHECK_UPDATES_ACTIVE_INTERVAL = 1500;
+const CHECK_UPDATES_LAZY_INTERVAL = 3 * 1000;   /// fixme? 15s
+const CHECK_UPDATES_ACTIVE_INTERVAL = 1000;
 let checkUpdatesActiveCounter = 0;
 let checkUpdatesActiveStatus = false;
 
