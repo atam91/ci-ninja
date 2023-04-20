@@ -136,7 +136,7 @@ const TG_MESSAGE_LIMIT = 4096;
 async function tgSendMessage(text, options = {}) {
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
 
-    const _sendMessage = (text, parse_mode = 'Markdown') => axios.post(
+    const _sendMessage = (text, parse_mode = options.parseMode || 'Markdown') => axios.post(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
             chat_id: TELEGRAM_NOTIFY_CHANNEL,
@@ -261,7 +261,7 @@ function tgCheckUpdates() {
               try {
                 const scriptfile = match[1];
                 await fs.promises.readFile(`./scripts/${scriptfile}`);
-                await tgSendMessage(`Running ${scriptfile}`);
+                await tgSendMessage(`Running ${scriptfile}`, { parseMode: 'none' });
                 execScript(scriptfile.endsWith('.sh') ? scriptfile.replace(/\.sh$/, '') : scriptfile);
               } catch (err) {
                 tgSendMessage(err.message);
