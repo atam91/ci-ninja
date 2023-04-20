@@ -92,7 +92,7 @@ function execScript(scriptname) {
   }
 
   const startTime = Date.now();
-  
+
   const exec = require('child_process').exec
   const execCallback = (error, stdout, stderr) => {
     const duration = (Date.now() - startTime) / 1000;
@@ -113,13 +113,17 @@ function execScript(scriptname) {
       `*STDERR::*\n${stderr}`
     ].filter(v => v).join('\n');
 
+    fs.writeFileSync(`./logs/${scriptname}.log`, fullReport);
+
     if (error) {
-      tgSendMessage(fullReport);
+      try {
+        tgSendMessage(fullReport);
+      } catch(sendError) {
+        tgSendMessage(shortReport + '\nCould not send fullReport :((');
+      }
     } else {
       tgSendMessage(shortReport);
     }
-
-    fs.writeFileSync(`./logs/${scriptname}.log`, fullReport);
 
     console.log('^_^');
   }
@@ -137,7 +141,7 @@ async function tgSendMessage(text, options = {}) {
           `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
           {
             chat_id: TELEGRAM_NOTIFY_CHANNEL,
-            parse_mode: 'Markdown',
+            //parse_mode: 'Markdown',
             text,
             reply_markup: options.keyboard
                 ? {
