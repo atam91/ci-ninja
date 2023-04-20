@@ -141,7 +141,7 @@ async function tgSendMessage(text, options = {}) {
           `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
           {
             chat_id: TELEGRAM_NOTIFY_CHANNEL,
-            parse_mode: 'none',
+            parse_mode: 'Markdown',
             text,
             reply_markup: options.keyboard
                 ? {
@@ -155,6 +155,20 @@ async function tgSendMessage(text, options = {}) {
           .catch(function (error) {
             console.log('sendMessage AXIOS ERROR:' + error);
             console.log('RESPONSE DATA:', error.response.data);
+
+            if (error.response.data && error.response.data.description) {
+              axios.post(
+                  `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+                  {
+                      chat_id: TELEGRAM_NOTIFY_CHANNEL,
+                      text: error + '\n' + error.response.data.description,
+                  }
+              )
+                  .catch(secondError => {
+                    console.log('sendERROR AXIOS ERROR:' + secondError);
+                    console.log('RESPONSE DATA:', secondError.response.data);
+                  });
+            }
           });
 
   if (text.length > TG_MESSAGE_LIMIT) {
