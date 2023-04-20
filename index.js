@@ -134,14 +134,13 @@ function execScript(scriptname) {
 const TG_MESSAGE_LIMIT = 4096;
 
 async function tgSendMessage(text, options = {}) {
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_NOTIFY_CHANNEL) return;
 
-  const sendMessage = text =>
-      axios.post(
-          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-          {
+    const _sendMessage = (text, parse_mode = 'Markdown') => axios.post(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
             chat_id: TELEGRAM_NOTIFY_CHANNEL,
-            parse_mode: 'HTML',
+            parse_mode,
             text,
             reply_markup: options.keyboard
                 ? {
@@ -149,27 +148,28 @@ async function tgSendMessage(text, options = {}) {
                     one_time_keyboard: true,
                     keyboard: options.keyboard,
                 }
-                : { remove_keyboard: true },
-          }
-      )
-          .catch(function (error) {
-            console.log('sendMessage AXIOS ERROR:' + error);
+                : {remove_keyboard: true},
+        }
+    );
+    const sendMessage = async text => {
+        try {
+            await _sendMessage(text);
+        } catch (error) {
+            console.log('sendMessage Markdown AXIOS ERROR:' + error);
             console.log('RESPONSE DATA:', error.response.data);
 
-            if (error.response.data && error.response.data.description) {
-              axios.post(
-                  `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-                  {
-                      chat_id: TELEGRAM_NOTIFY_CHANNEL,
-                      text: error + '\n' + error.response.data.description,
-                  }
-              )
-                  .catch(secondError => {
-                    console.log('sendERROR AXIOS ERROR:' + secondError);
-                    console.log('RESPONSE DATA:', secondError.response.data);
-                  });
+            try {
+                await _sendMessage(text, 'none');
+            } catch (error2) {
+                console.log('sendMessage none_parse AXIOS ERROR:' + error2);
+                console.log('RESPONSE DATA:', error2.response.data);
+
+                if (error2.response.data && error2.response.data.description) {
+                    await _sendMessage(error2 + '\n' + error2.response.data.description);
+                }
             }
-          });
+        }
+    }
 
   if (text.length > TG_MESSAGE_LIMIT) {
     const chunks = [ '' ];
@@ -237,7 +237,7 @@ function tgCheckUpdates() {
             if (match) {
               try {
                 const file = await fs.promises.readFile(`./logs/${match[1]}`);
-                tgSendMessage(file.toString());
+                tgSendMessage(file.toString());                                     /// fullReport
               } catch (err) {
                 tgSendMessage(err.message);
               }
