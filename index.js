@@ -141,7 +141,7 @@ async function tgSendMessage(text, options = {}) {
           `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
           {
             chat_id: TELEGRAM_NOTIFY_CHANNEL,
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
             text,
             reply_markup: options.keyboard
                 ? {
