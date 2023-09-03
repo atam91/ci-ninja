@@ -7,6 +7,16 @@ const bodyParser = require('body-parser')
 const Netmask = require('netmask').Netmask
 const axios = require('axios').default;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error, origin) => {
+  console.log('Uncaught Exception (', origin, '):', error);
+});
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const { TELEGRAM_BOT_TOKEN, TELEGRAM_NOTIFY_CHANNEL } = process.env;
 
 const app = express()
