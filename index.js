@@ -192,10 +192,7 @@ async function tgSendMessage(text, options = {}) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const CHECK_UPDATES_LAZY_INTERVAL = 3 * 1000;   /// fixme? 15s
-const CHECK_UPDATES_ACTIVE_INTERVAL = 1000;
-let checkUpdatesActiveCounter = 0;
-let checkUpdatesActiveStatus = false;
+const CHECK_UPDATES_INTERVAL = 1000;
 
 let currentOffset = 0;
 try {
@@ -269,28 +266,13 @@ function tgCheckUpdates() {
             }
           }
         }));
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (updates.length && !checkUpdatesActiveStatus) {
-          checkUpdatesActiveStatus = true;
-          checkUpdatesActiveCounter = 0;
-        }
-        if (checkUpdatesActiveStatus) {
-          checkUpdatesActiveCounter += CHECK_UPDATES_ACTIVE_INTERVAL;
-        }
-        if (checkUpdatesActiveCounter >= CHECK_UPDATES_LAZY_INTERVAL) {
-          checkUpdatesActiveStatus = false;
-        }
-        setTimeout(
-            tgCheckUpdates,
-            checkUpdatesActiveStatus ? CHECK_UPDATES_ACTIVE_INTERVAL : CHECK_UPDATES_LAZY_INTERVAL
-        );
       })
       .catch(function (error) {
         console.log('getUpdates AXIOS ERROR:' + error);
         error.response && console.log('RESPONSE DATA:', error.response.data);
-
-        setTimeout(tgCheckUpdates, CHECK_UPDATES_LAZY_INTERVAL);
+      })
+      .finally(function() {
+        setTimeout(tgCheckUpdates, CHECK_UPDATES_INTERVAL);
       });
 }
 tgCheckUpdates();
